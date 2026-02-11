@@ -1,10 +1,11 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
-import db from '@/lib/db';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const { default: db } = await import('@/lib/db');
     const meetings = await db.meeting.findMany({
       orderBy: {
         createdAt: 'desc',

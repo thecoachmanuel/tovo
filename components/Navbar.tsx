@@ -7,9 +7,7 @@ import UserMenu from './UserMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Button } from './ui/button';
-import { Sora } from 'next/font/google';
-
-const sora = Sora({ subsets: ['latin'], weight: ['700', '800'] });
+ 
 
 const Navbar = () => {
   const { user } = useSupabaseUser();
@@ -24,7 +22,7 @@ const Navbar = () => {
           alt="tovo logo"
           className="max-sm:size-10"
         />
-        <div className={`text-[26px] font-extrabold max-sm:hidden ${sora.className}`}>
+        <div className="text-[26px] font-extrabold max-sm:hidden">
           <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent dark:hidden">
             TOVO
           </span>

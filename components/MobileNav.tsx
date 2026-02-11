@@ -7,9 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { sidebarLinks } from '@/constants';
 import { cn } from '@/lib/utils';
-import { Sora } from 'next/font/google';
-
-const sora = Sora({ subsets: ['latin'], weight: ['700', '800'] });
+ 
 
 const MobileNav = () => {
   const pathname = usePathname();
@@ -34,7 +32,7 @@ const MobileNav = () => {
               height={32}
               alt="tovo logo"
             />
-            <div className={`text-[26px] font-extrabold ${sora.className}`}>
+            <div className="text-[26px] font-extrabold">
               <span className="text-white">
                 TOVO
               </span>
