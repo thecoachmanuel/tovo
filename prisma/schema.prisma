@@ -1,0 +1,39 @@
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  username  String?
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  meetings  Meeting[]
+}
+
+model Meeting {
+  id           String    @id @default(uuid())
+  streamCallId String
+  title        String    @default("Instant Meeting")
+  startsAt     DateTime  @default(now())
+  endedAt      DateTime?
+  createdBy    String
+  user         User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+}
+
+model MeetingQuality {
+  id            String   @id @default(uuid())
+  meetingId     String
+  rttMs         Float?
+  downlinkMbps  Float?
+  jitterMs      Float?
+  createdAt     DateTime @default(now())
+}
