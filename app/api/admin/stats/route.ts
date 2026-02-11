@@ -1,4 +1,7 @@
+import 'server-only';
 import { NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import db from '@/lib/db';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';

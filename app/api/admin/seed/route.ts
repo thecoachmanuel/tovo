@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string;

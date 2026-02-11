@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import db from '@/lib/db';
 
 export async function POST(req: NextRequest) {

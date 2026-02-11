@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { getGlobalPlanConfig } from '@/actions/billing.actions';

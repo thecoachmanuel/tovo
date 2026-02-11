@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import crypto from 'crypto';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 

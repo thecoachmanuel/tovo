@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import db from '@/lib/db';
 
 export async function GET() {
