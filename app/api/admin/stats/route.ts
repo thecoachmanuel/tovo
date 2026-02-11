@@ -2,7 +2,6 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-import db from '@/lib/db';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 
@@ -20,6 +19,7 @@ function getAdminClient() {
 
 export async function GET() {
   try {
+    const { default: db } = await import('@/lib/db');
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || user.user_metadata?.role !== 'admin') {
