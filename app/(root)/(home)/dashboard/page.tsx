@@ -113,7 +113,7 @@ const DashboardContent = () => {
   return (
     <Suspense fallback={<Loader />}>
     <section className="flex size-full flex-col gap-5 text-black dark:text-white">
-      <div className="h-[303px] w-full rounded-[20px] bg-hero bg-cover">
+      <div className="min-h-[240px] md:h-[303px] w-full rounded-[20px] bg-hero bg-cover">
         <div className="flex h-full flex-col justify-between max-md:px-5 max-md:py-8 lg:p-11">
           <div className="flex items-center justify-between">
             <div />

@@ -204,18 +204,18 @@ const MeetingRoom = () => {
   }, [durationLimitMs, isGroup, unlimitedOneOnOne]);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden pt-4 text-white">
+    <section className="relative min-h-screen w-full overflow-hidden pt-4 pb-20 text-white">
       <div className="relative flex size-full items-center justify-center">
-        <div className=" flex size-full max-w-[1000px] items-center">
+        <div className="flex size-full max-w-[1000px] items-center">
           <CallLayout />
         </div>
         {showParticipants && (
-          <div className="h-[calc(100vh-86px)] ml-2">
+          <div className="md:h-[calc(100vh-86px)] md:ml-2 hidden md:block">
             <CallParticipantsList onClose={() => setShowParticipants(false)} />
           </div>
         )}
         {showChat && (
-          <div className="h-[calc(100vh-86px)] ml-2 w-[320px] rounded-2xl bg-[#19232d] p-4 border border-[#2a3440] flex flex-col">
+          <div className="md:h-[calc(100vh-86px)] md:ml-2 md:w-[320px] rounded-2xl bg-[#19232d] p-4 border border-[#2a3440] flex flex-col hidden md:flex">
             <div className="flex items-center justify-between">
               <p className="font-semibold">Chat</p>
               <span className="text-xs text-gray-400">{messages.length} messages</span>
@@ -245,7 +245,47 @@ const MeetingRoom = () => {
           </div>
         )}
       </div>
-      <div className="fixed bottom-0 flex w-full items-center justify-center gap-5">
+      {/* Mobile overlays */}
+      {showParticipants && (
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setShowParticipants(false)}>
+          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-[#19232d] p-4 border-t border-[#2a3440] max-h-[60vh] overflow-y-auto">
+            <CallParticipantsList onClose={() => setShowParticipants(false)} />
+          </div>
+        </div>
+      )}
+      {showChat && (
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setShowChat(false)}>
+          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-[#19232d] p-4 border-t border-[#2a3440] max-h-[60vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <p className="font-semibold">Chat</p>
+              <span className="text-xs text-gray-400">{messages.length} messages</span>
+            </div>
+            <div className="mt-3 space-y-3">
+              {messages.map((m) => (
+                <div key={m.id} className="rounded-lg bg-[#1f2a36] p-2">
+                  <p className="text-xs text-gray-300">{m.name}</p>
+                  <p className="text-sm">{m.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Input
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Type a message"
+                className="bg-[#1f2a36] border-none text-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') sendMessage();
+                }}
+              />
+              <Button onClick={sendMessage} className="bg-blue-1 hover:bg-blue-1/90">
+                Send
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="fixed bottom-0 left-0 right-0 z-20 flex w-full flex-wrap items-center justify-center gap-3 md:gap-5 px-3 py-2 md:py-3 bg-[#0f1720]/80 backdrop-blur supports-[backdrop-filter]:bg-[#0f1720]/60">
         <CallControls onLeave={leaveCall} />
 
         <DropdownMenu>

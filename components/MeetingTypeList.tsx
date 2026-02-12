@@ -16,7 +16,7 @@ import { getGlobalPlanConfig } from '@/actions/billing.actions';
 
 const ReactDatePicker = dynamic(() => import('react-datepicker'), {
   ssr: false,
-});
+}) as any;
 
 type Plan = 'free' | 'pro' | 'business';
 const planFeatures: Record<Plan, { recordings: boolean; streaming: boolean; groupUnlimited: boolean }> = {
@@ -103,7 +103,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
   const meetingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${callDetail?.id}`;
 
   return (
-    <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:grid-cols-2 xl:grid-cols-4">
       <HomeCard
         img="/icons/add-meeting.svg"
         title="New Meeting"
@@ -163,7 +163,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
             </label>
             <ReactDatePicker
               selected={values.dateTime}
-              onChange={(date) => setValues({ ...values, dateTime: date! })}
+              onChange={(date: Date | null) => setValues({ ...values, dateTime: date! })}
               showTimeSelect
               timeFormat="HH:mm"
               timeIntervals={15}
