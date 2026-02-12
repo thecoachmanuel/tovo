@@ -1,7 +1,7 @@
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
-import db from '@/lib/db';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing meetingId' }, { status: 400 });
     }
     try {
+      const { default: db } = await import('@/lib/db');
       await db.meetingQuality.create({
         data: {
           meetingId,
