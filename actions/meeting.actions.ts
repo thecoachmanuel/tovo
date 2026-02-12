@@ -1,6 +1,4 @@
 'use server';
-
-import db from '@/lib/db';
 import { createClient } from '@/utils/supabase/server';
 import { StreamClient } from '@stream-io/node-sdk';
  
@@ -26,6 +24,7 @@ export const createMeeting = async ({
   }
 
   try {
+    const { default: db } = await import('@/lib/db');
     const meeting = await db.meeting.create({
       data: {
         id,
@@ -53,6 +52,7 @@ export const deleteMeeting = async (streamCallId: string) => {
 
   try {
     // Delete from database
+    const { default: db } = await import('@/lib/db');
     await db.meeting.deleteMany({
       where: {
         streamCallId: streamCallId,
@@ -79,6 +79,7 @@ export const deleteStreamCall = async (streamCallId: string) => {
   }
 
   // Ensure only the meeting creator can delete the Stream call
+  const { default: db } = await import('@/lib/db');
   const meeting = await db.meeting.findFirst({
     where: { streamCallId },
   });
@@ -111,6 +112,7 @@ export const updateMeeting = async ({
 
   try {
     // Update in database
+    const { default: db } = await import('@/lib/db');
     await db.meeting.updateMany({
       where: {
         streamCallId: streamCallId,

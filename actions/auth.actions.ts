@@ -19,6 +19,21 @@ export async function login(formData: FormData) {
   if (error) {
     return { error: error.message }
   }
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (user && adminEmail && supabaseUrl && serviceKey && user.email === adminEmail) {
+      const { createClient: createSupabaseAdmin } = await import('@supabase/supabase-js')
+      const admin = createSupabaseAdmin(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+      await admin.auth.admin.updateUserById(user.id, {
+        user_metadata: { role: 'admin' },
+      })
+    }
+  } catch {}
 
   revalidatePath('/', 'layout')
   redirect('/dashboard')

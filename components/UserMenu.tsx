@@ -30,7 +30,8 @@ export default function UserMenu() {
           <Image
             src={user.user_metadata.avatar_url || '/icons/user.svg'}
             alt="User avatar"
-            layout="fill"
+            fill
+            unoptimized
             className="rounded-full object-cover"
           />
         </Button>
