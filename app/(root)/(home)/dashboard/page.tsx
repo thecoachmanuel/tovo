@@ -4,15 +4,14 @@ import MeetingTypeList from '@/components/MeetingTypeList';
 import { useGetCalls } from '@/hooks/useGetCalls';
 import { Call } from '@stream-io/video-react-sdk';
 import Loader from '@/components/Loader';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
-import { verifyPaystackPayment } from '@/actions/billing.actions';
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
   const { upcomingCalls, isLoading, refetch } = useGetCalls();
@@ -37,7 +36,8 @@ const Dashboard = () => {
     if (!ref) return;
     (async () => {
       try {
-        const result = await verifyPaystackPayment(ref);
+        const res = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(ref)}`);
+        const result = await res.json();
         if (result?.success) {
           toast({ title: 'Subscription Activated', description: `Your ${result.plan} plan is now active.` });
         }
@@ -68,6 +68,7 @@ const Dashboard = () => {
   const meetingLink = upcomingMeeting ? `/meeting/${upcomingMeeting.id}` : '#';
 
   return (
+    <Suspense fallback={<Loader />}>
     <section className="flex size-full flex-col gap-5 text-black dark:text-white">
       <div className="h-[303px] w-full rounded-[20px] bg-hero bg-cover">
         <div className="flex h-full flex-col justify-between max-md:px-5 max-md:py-8 lg:p-11">
@@ -113,7 +114,14 @@ const Dashboard = () => {
 
       <MeetingTypeList onMeetingCreated={refetch} />
     </section>
+    </Suspense>
   );
 };
 
-export default Dashboard;
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
