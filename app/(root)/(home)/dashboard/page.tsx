@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useGetCalls } from '@/hooks/useGetCalls';
 import { Call } from '@stream-io/video-react-sdk';
 import Loader from '@/components/Loader';
-import { useEffect, useState, useMemo, Suspense } from 'react';
+import { useEffect, useState, useMemo, Suspense, useDeferredValue } from 'react';
 import Link from 'next/link';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,8 @@ const DashboardContent = () => {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useSupabaseUser();
+  const [upcomingFromDb, setUpcomingFromDb] = useState<Array<{ streamCallId: string; startsAt: string; title?: string }> | null>(null);
+  const deferredCalls = useDeferredValue(upcomingCalls);
 
   useEffect(() => {
     const updateTime = () => {
@@ -45,7 +47,7 @@ const DashboardContent = () => {
   useEffect(() => {
     const ref = searchParams.get('reference');
     if (!ref) return;
-    (async () => {
+    const run = async () => {
       try {
         const res = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(ref)}`);
         const result = await res.json();
@@ -55,21 +57,51 @@ const DashboardContent = () => {
       } catch (e) {
         toast({ title: 'Payment verification failed', variant: 'destructive' });
       }
-    })();
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(run);
+    } else {
+      setTimeout(run, 0);
+    }
   }, [searchParams, toast]);
 
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/meetings/upcoming', { cache: 'no-store' });
+        const json = await res.json();
+        if (active) setUpcomingFromDb(json);
+      } catch {
+        if (active) setUpcomingFromDb([]);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const upcomingMeeting = useMemo(() => {
-    if (!upcomingCalls || upcomingCalls.length === 0) return null;
+    if (upcomingFromDb && upcomingFromDb.length > 0) {
+      const u = upcomingFromDb[0];
+      return { id: u.streamCallId, state: { startsAt: new Date(u.startsAt), custom: { description: u.title } } } as unknown as Call;
+    }
+    const calls = deferredCalls;
+    if (!calls || calls.length === 0) return null;
 
     // Sort by startsAt ascending (earliest first)
-    return [...upcomingCalls].sort((a: Call, b: Call) => {
+    return [...calls].sort((a: Call, b: Call) => {
       const dateA = new Date(a.state?.startsAt || a.state?.custom?.starts_at || 0);
       const dateB = new Date(b.state?.startsAt || b.state?.custom?.starts_at || 0);
       return dateA.getTime() - dateB.getTime();
     })[0];
-  }, [upcomingCalls]);
+  }, [deferredCalls, upcomingFromDb]);
 
-  if (isLoading) return <Loader />;
+  const heroMeetingSkeleton = (
+    <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal text-black dark:text-white">
+      Loading upcoming…
+    </h2>
+  );
 
   const meetingStartsAt = upcomingMeeting?.state?.startsAt || upcomingMeeting?.state?.custom?.starts_at;
   const meetingTime = meetingStartsAt
@@ -112,9 +144,11 @@ const DashboardContent = () => {
                 </h2>
              </Link>
           ) : (
-            <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal text-black dark:text-white">
-              No Upcoming Meetings
-            </h2>
+            isLoading ? heroMeetingSkeleton : (
+              <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal text-black dark:text-white">
+                No Upcoming Meetings
+              </h2>
+            )
           )}
           <div className="flex flex-col gap-2">
             <h1 className="text-4xl font-extrabold lg:text-7xl">{time || '00:00 PM'}</h1>

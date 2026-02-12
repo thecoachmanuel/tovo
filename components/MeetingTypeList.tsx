@@ -112,7 +112,13 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
     }
   };
 
-  if (!client || !user) return <Loader />;
+  const ensureClientReady = () => {
+    if (!client || !user) {
+      toast({ title: 'Please wait', description: 'Initializing meeting services...' });
+      return false;
+    }
+    return true;
+  };
 
   const meetingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${callDetail?.id}`;
 
@@ -158,7 +164,10 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
           title="Create Meeting"
-          handleClick={createMeetingHandler}
+          handleClick={() => {
+            if (!ensureClientReady()) return;
+            createMeetingHandler();
+          }}
         >
           <div className="flex flex-col gap-2.5">
             <label className="text-base font-normal leading-[22.4px] text-sky-2">
@@ -224,10 +233,13 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
       <MeetingModal
         isOpen={meetingState === 'isInstantMeeting'}
         onClose={() => setMeetingState(undefined)}
-        title="Start an Instant Meeting"
+          title="Start an Instant Meeting"
         className="text-center"
         buttonText="Start Meeting"
-        handleClick={createMeetingHandler}
+          handleClick={() => {
+            if (!ensureClientReady()) return;
+            createMeetingHandler();
+          }}
       />
     </section>
   );
