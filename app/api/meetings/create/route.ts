@@ -11,8 +11,16 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 export async function POST(req: NextRequest) {
   try {
-    if (!STREAM_API_KEY || !STREAM_API_SECRET) {
-      return NextResponse.json({ error: 'Missing Stream config' }, { status: 500 });
+    const apiKey = (STREAM_API_KEY || '').trim();
+    const apiSecret = (STREAM_API_SECRET || '').trim();
+    if (!apiKey || !apiSecret || /your.*key/i.test(apiKey) || /your.*secret/i.test(apiSecret)) {
+      return NextResponse.json(
+        {
+          error: 'Missing Stream config',
+          hint: 'Set NEXT_PUBLIC_STREAM_API_KEY and STREAM_SECRET_KEY in .env.local, then restart the server.',
+        },
+        { status: 500 }
+      );
     }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -24,7 +32,7 @@ export async function POST(req: NextRequest) {
     const id = crypto.randomUUID();
     const startsISO = startsAt ? new Date(startsAt).toISOString() : new Date().toISOString();
 
-    const streamClient = new StreamClient(STREAM_API_KEY, STREAM_API_SECRET);
+    const streamClient = new StreamClient(apiKey, apiSecret);
     const call = streamClient.video.call('default', id);
     await call.getOrCreate({
       data: {
