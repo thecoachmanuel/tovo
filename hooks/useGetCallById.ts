@@ -3,7 +3,7 @@ import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
 
 export const useGetCallById = (id: string | string[]) => {
   const [call, setCall] = useState<Call>();
-  const [isCallLoading, setIsCallLoading] = useState(true);
+  const [isCallLoading, setIsCallLoading] = useState(false);
 
   const client = useStreamVideoClient();
 
@@ -12,6 +12,7 @@ export const useGetCallById = (id: string | string[]) => {
     
     const loadCall = async () => {
       try {
+        setIsCallLoading(true);
         // https://getstream.io/video/docs/react/guides/querying-calls/#filters
         const { calls } = await client.queryCalls({ filter_conditions: { id } });
 

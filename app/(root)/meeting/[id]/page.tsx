@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StreamCall, StreamTheme } from '@stream-io/video-react-sdk';
+import { StreamCall, StreamTheme, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useParams } from 'next/navigation';
 import { Loader } from 'lucide-react';
 
@@ -21,6 +21,7 @@ const MeetingPage = () => {
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [limitError, setLimitError] = useState<string | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
+  const streamClient = useStreamVideoClient();
   
   useEffect(() => {
     const checkLimits = async () => {
@@ -45,11 +46,8 @@ const MeetingPage = () => {
 
   if (!isLoaded || isCallLoading || !configLoaded) return <Loader />;
 
-  if (!call) return (
-    <p className="text-center text-3xl font-bold text-white">
-      Call Not Found
-    </p>
-  );
+  if (!streamClient) return <Alert title="Stream is not configured" />;
+  if (!call) return <Alert title="Call Not Found" />;
 
   // get more info about custom call type:  https://getstream.io/video/docs/react/guides/configuring-call-types/
   const notAllowed = call.type === 'invited' && (!user || !call.state.members.find((m) => m.user.id === user.id));
