@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { StreamVideoClient, StreamVideo } from '@stream-io/video-react-sdk';
 import { createClient } from '@/utils/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -11,7 +11,6 @@ import Loader from '@/components/Loader';
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
 const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
-  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -25,17 +24,13 @@ const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
     getUser();
   }, []);
 
-  useEffect(() => {
-    if (!isLoaded || !user) return;
+  const videoClient = useMemo(() => {
+    if (!isLoaded || !user) return undefined;
     if (!API_KEY) {
       console.error('Stream API key is missing');
-      return;
+      return undefined;
     }
-
-    console.log('Initializing Stream Client with API Key:', API_KEY);
-    console.log('User for Stream Client:', user.id);
-
-    const client = new StreamVideoClient({
+    return new StreamVideoClient({
       apiKey: API_KEY,
       user: {
         id: user.id,
@@ -44,8 +39,6 @@ const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
       },
       tokenProvider,
     });
-
-    setVideoClient(client);
   }, [user, isLoaded]);
 
   if (user && videoClient) {

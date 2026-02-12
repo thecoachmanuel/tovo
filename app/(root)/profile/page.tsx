@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +21,24 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const supabase = createClient();
 
+  const getProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        setUsername(user.user_metadata?.username || '');
+      }
+    } catch (error) {
+      console.log('Error loading user data!');
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
   useEffect(() => {
     getProfile();
-  }, []);
+  }, [getProfile]);
 
   useEffect(() => {
     if (profileSaved) {
@@ -46,20 +61,7 @@ export default function ProfilePage() {
     }
   }, [avatarUpdated]);
 
-  const getProfile = async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        setUsername(user.user_metadata?.username || '');
-      }
-    } catch (error) {
-      console.log('Error loading user data!');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const updateProfile = async () => {
     try {

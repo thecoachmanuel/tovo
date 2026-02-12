@@ -97,7 +97,7 @@ const SelectItem = React.forwardRef<HTMLDivElement, ItemProps>(
     React.useEffect(() => {
       const label = typeof children === 'string' ? children : String(children);
       ctx.register(value, label);
-    }, [value, children]);
+    }, [value, children, ctx]);
     return (
       <DropdownMenuItem
         ref={ref}

@@ -174,7 +174,7 @@ export default function CheckoutPage({ params }: { params: { plan: string } }) {
           </Button>
           
           <p className="text-xs text-center text-gray-500">
-            By clicking "Pay", you agree to our Terms of Service and Privacy Policy.
+            By clicking &quot;Pay&quot;, you agree to our Terms of Service and Privacy Policy.
             <br />
             (Note: This is a demo payment flow)
           </p>

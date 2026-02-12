@@ -65,7 +65,7 @@ export default function PricingPage() {
           Simple, transparent pricing
         </h1>
         <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-          Choose the plan that's right for you. All plans include unlimited video calling.
+          Choose the plan that&apos;s right for you. All plans include unlimited video calling.
         </p>
 
         <div className="flex items-center justify-center mt-8 gap-4">

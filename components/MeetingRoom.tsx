@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CallControls,
   CallParticipantsList,
@@ -65,9 +65,7 @@ const MeetingRoom = () => {
 
   const callingState = useCallCallingState();
 
-  if (callingState !== CallingState.JOINED) return <Loader />;
-
-  const leaveCall = async () => {
+  const leaveCall = useCallback(async () => {
     try {
       await call?.camera?.disable();
       await call?.microphone?.disable();
@@ -76,7 +74,7 @@ const MeetingRoom = () => {
       console.error('Error leaving call', error);
     }
     router.push(`/`);
-  };
+  }, [call, router]);
 
   const CallLayout = () => {
     switch (layout) {
@@ -201,50 +199,56 @@ const MeetingRoom = () => {
       }
     }, 5000);
     return () => clearInterval(id);
-  }, [durationLimitMs, isGroup, unlimitedOneOnOne]);
+  }, [durationLimitMs, isGroup, unlimitedOneOnOne, toast, leaveCall]);
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden pt-4 pb-20 text-white">
-      <div className="relative flex size-full items-center justify-center">
-        <div className="flex size-full max-w-[1000px] items-center">
-          <CallLayout />
+      {callingState !== CallingState.JOINED ? (
+        <div className="flex size-full items-center justify-center">
+          <Loader />
         </div>
-        {showParticipants && (
-          <div className="md:h-[calc(100vh-86px)] md:ml-2 hidden md:block">
-            <CallParticipantsList onClose={() => setShowParticipants(false)} />
+      ) : (
+        <div className="relative flex size-full items-center justify-center">
+          <div className="flex size-full max-w-[1000px] items-center">
+            <CallLayout />
           </div>
-        )}
-        {showChat && (
-          <div className="md:h-[calc(100vh-86px)] md:ml-2 md:w-[320px] rounded-2xl bg-[#19232d] p-4 border border-[#2a3440] flex flex-col hidden md:flex">
-            <div className="flex items-center justify-between">
-              <p className="font-semibold">Chat</p>
-              <span className="text-xs text-gray-400">{messages.length} messages</span>
+          {showParticipants && (
+            <div className="md:h-[calc(100vh-86px)] md:ml-2 hidden md:block">
+              <CallParticipantsList onClose={() => setShowParticipants(false)} />
             </div>
-            <div className="mt-3 flex-1 overflow-y-auto space-y-3 pr-1">
-              {messages.map((m) => (
-                <div key={m.id} className="rounded-lg bg-[#1f2a36] p-2">
-                  <p className="text-xs text-gray-300">{m.name}</p>
-                  <p className="text-sm">{m.text}</p>
-                </div>
-              ))}
+          )}
+          {showChat && (
+            <div className="md:h-[calc(100vh-86px)] md:ml-2 md:w-[320px] rounded-2xl bg-[#19232d] p-4 border border-[#2a3440] flex-col hidden md:flex">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold">Chat</p>
+                <span className="text-xs text-gray-400">{messages.length} messages</span>
+              </div>
+              <div className="mt-3 flex-1 overflow-y-auto space-y-3 pr-1">
+                {messages.map((m) => (
+                  <div key={m.id} className="rounded-lg bg-[#1f2a36] p-2">
+                    <p className="text-xs text-gray-300">{m.name}</p>
+                    <p className="text-sm">{m.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Input
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Type a message"
+                  className="bg-[#1f2a36] border-none text-white"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') sendMessage();
+                  }}
+                />
+                <Button onClick={sendMessage} className="bg-blue-1 hover:bg-blue-1/90">
+                  Send
+                </Button>
+              </div>
             </div>
-            <div className="mt-3 flex gap-2">
-              <Input
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                placeholder="Type a message"
-                className="bg-[#1f2a36] border-none text-white"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') sendMessage();
-                }}
-              />
-              <Button onClick={sendMessage} className="bg-blue-1 hover:bg-blue-1/90">
-                Send
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
       {/* Mobile overlays */}
       {showParticipants && (
         <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setShowParticipants(false)}>

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const call = streamClient.video.call('default', id);
     await call.getOrCreate({
       data: {
-        starts_at: new Date(startsISO),
+        starts_at: startsISO,
         custom: {
           description: description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
           starts_at: startsISO,
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       meetingLink: `${BASE_URL}/meeting/${id}`,
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create meeting' }, { status: 500 });
+    const message = (error as Error)?.message || 'Failed to create meeting';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

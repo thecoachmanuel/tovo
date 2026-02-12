@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
 
@@ -8,13 +8,10 @@ export const useGetCalls = () => {
   const [calls, setCalls] = useState<Call[]>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadCalls = async () => {
+  const loadCalls = useCallback(async () => {
     if (!client || !user?.id) return;
-    
     setIsLoading(true);
-
     try {
-      // https://getstream.io/video/docs/react/guides/querying-calls/#filters
       const { calls } = await client.queryCalls({
         sort: [{ field: 'starts_at', direction: -1 }],
         filter_conditions: {
@@ -25,20 +22,19 @@ export const useGetCalls = () => {
           ],
         },
       });
-
       setCalls(calls);
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [client, user?.id]);
 
   useEffect(() => {
     if (isLoaded) {
       loadCalls();
     }
-  }, [client, user?.id, isLoaded]);
+  }, [isLoaded, loadCalls]);
 
   const now = new Date();
 
