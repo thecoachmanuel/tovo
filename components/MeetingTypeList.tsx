@@ -43,6 +43,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
   const plan: Plan = (user?.user_metadata?.subscription_plan as Plan) || 'free';
   const active = !!user?.user_metadata?.subscription_active;
   const [config, setConfig] = useState<{ recordingsEnabled: boolean; streamingEnabled: boolean; unlimitedOneOnOne: boolean } | null>(null);
+  const [creating, setCreating] = useState(false);
   
   useEffect(() => {
     (async () => {
@@ -65,22 +66,25 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
       return;
     }
     try {
-      if (!values.dateTime) {
+      if (!instant && !values.dateTime) {
         toast({ title: 'Please select a date and time' });
         return;
       }
+      setCreating(true);
       const res = await fetch('/api/meetings/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description: values.description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
-          startsAt: values.dateTime,
+          startsAt: instant ? new Date() : values.dateTime,
           instant: !!instant,
         }),
       });
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.error || 'Failed to create meeting');
+        const msg = json?.error || 'Failed to create meeting';
+        toast({ title: 'Create failed', description: msg, variant: 'destructive' });
+        return;
       }
       setCallDetail({ id: json.id } as unknown as Call);
 
@@ -96,7 +100,9 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
       });
     } catch (error) {
       console.error('Failed to create meeting:', error);
-      toast({ title: 'Failed to create Meeting' });
+      toast({ title: 'Failed to create Meeting', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -212,7 +218,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
         onClose={() => setMeetingState(undefined)}
           title="Start an Instant Meeting"
         className="text-center"
-        buttonText="Start Meeting"
+        buttonText={creating ? 'Starting…' : 'Start Meeting'}
           handleClick={() => createMeetingHandler(true)}
       />
     </section>
