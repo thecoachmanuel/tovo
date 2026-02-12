@@ -11,17 +11,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = (STREAM_API_KEY || '').trim();
-    const apiSecret = (STREAM_API_SECRET || '').trim();
-    if (!apiKey || !apiSecret || /your.*key/i.test(apiKey) || /your.*secret/i.test(apiSecret)) {
-      return NextResponse.json(
-        {
-          error: 'Missing Stream config',
-          hint: 'Set NEXT_PUBLIC_STREAM_API_KEY and STREAM_SECRET_KEY in .env.local, then restart the server.',
-        },
-        { status: 500 }
-      );
-    }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -32,17 +21,26 @@ export async function POST(req: NextRequest) {
     const id = crypto.randomUUID();
     const startsISO = startsAt ? new Date(startsAt).toISOString() : new Date().toISOString();
 
-    const streamClient = new StreamClient(apiKey, apiSecret);
-    const call = streamClient.video.call('default', id);
-    await call.getOrCreate({
-      data: {
-        starts_at: new Date(startsISO),
-        custom: {
-          description: description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
-          starts_at: startsISO,
-        },
-      },
-    });
+    const apiKey = (STREAM_API_KEY || '').trim();
+    const apiSecret = (STREAM_API_SECRET || '').trim();
+    let streamAvailable = !!apiKey && !!apiSecret && !/your.*key/i.test(apiKey) && !/your.*secret/i.test(apiSecret);
+    if (streamAvailable) {
+      try {
+        const streamClient = new StreamClient(apiKey, apiSecret);
+        const call = streamClient.video.call('default', id);
+        await call.getOrCreate({
+          data: {
+            starts_at: new Date(startsISO),
+            custom: {
+              description: description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
+              starts_at: startsISO,
+            },
+          },
+        });
+      } catch {
+        streamAvailable = false;
+      }
+    }
 
     const { default: db } = await import('@/lib/db');
     await db.user.upsert({
@@ -69,6 +67,7 @@ export async function POST(req: NextRequest) {
       startsAt: startsISO,
       title: description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
       meetingLink: `${BASE_URL}/meeting/${id}`,
+      streamAvailable,
     });
   } catch (error) {
     const message = (error as Error)?.message || 'Failed to create meeting';

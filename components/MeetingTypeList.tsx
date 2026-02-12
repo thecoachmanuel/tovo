@@ -129,14 +129,19 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
 
       if (instant) {
         router.push(`/meeting/${json.id}`);
+        if (json.streamAvailable === false) {
+          toast({ title: 'Stream setup required', description: 'Meeting created, but Stream is not configured yet. Set keys to start the call.' });
+        }
         return;
       }
       
       if (onMeetingCreated) onMeetingCreated();
 
-      toast({
-        title: 'Meeting Created',
-      });
+      if (json.streamAvailable === false) {
+        toast({ title: 'Meeting Created', description: 'Stream is not configured yet. Set keys to start the call.' });
+      } else {
+        toast({ title: 'Meeting Created' });
+      }
     } catch (error) {
       console.error('Failed to create meeting:', error);
       toast({ title: 'Failed to create Meeting', description: (error as Error).message, variant: 'destructive' });
