@@ -6,15 +6,17 @@ import { useRouter } from 'next/navigation';
 
 import HomeCard from './HomeCard';
 import MeetingModal from './MeetingModal';
-import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { Call } from '@stream-io/video-react-sdk';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
-import Loader from './Loader';
 import { Textarea } from './ui/textarea';
-import ReactDatePicker from 'react-datepicker';
+import dynamic from 'next/dynamic';
 import { useToast } from './ui/use-toast';
 import { Input } from './ui/input';
-import { createMeeting } from '@/actions/meeting.actions';
 import { getGlobalPlanConfig } from '@/actions/billing.actions';
+
+const ReactDatePicker = dynamic(() => import('react-datepicker'), {
+  ssr: false,
+});
 
 type Plan = 'free' | 'pro' | 'business';
 const planFeatures: Record<Plan, { recordings: boolean; streaming: boolean; groupUnlimited: boolean }> = {
@@ -36,7 +38,6 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
   >(undefined);
   const [values, setValues] = useState(initialValues);
   const [callDetail, setCallDetail] = useState<Call>();
-  const client = useStreamVideoClient();
   const { user } = useSupabaseUser();
   const { toast } = useToast();
   const plan: Plan = (user?.user_metadata?.subscription_plan as Plan) || 'free';
@@ -58,47 +59,34 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
     })();
   }, [plan]);
 
-  const createMeetingHandler = async () => {
-    if (!client || !user) return;
+  const createMeetingHandler = async (instant?: boolean) => {
+    if (!user) {
+      toast({ title: 'Sign in required', description: 'Please sign in to create meetings.' });
+      return;
+    }
     try {
       if (!values.dateTime) {
         toast({ title: 'Please select a date and time' });
         return;
       }
-      const id = crypto.randomUUID();
-      const call = client.call('default', id);
-      if (!call) throw new Error('Failed to create meeting');
-      
-      // Prevent camera from turning on during schedule
-      if (meetingState === 'isScheduleMeeting') {
-        await call.camera.disable();
-        await call.microphone.disable();
+      const res = await fetch('/api/meetings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: values.description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
+          startsAt: values.dateTime,
+          instant: !!instant,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to create meeting');
       }
+      setCallDetail({ id: json.id } as unknown as Call);
 
-      const startsAt =
-        values.dateTime.toISOString() || new Date(Date.now()).toISOString();
-      const description = values.description || 'Instant Meeting';
-      await call.getOrCreate({
-        data: {
-          starts_at: startsAt,
-          custom: {
-            description,
-            starts_at: startsAt, // Add redundancy
-          },
-        },
-      });
-
-      // Save meeting to database
-      await createMeeting({
-        title: description,
-        startsAt: new Date(startsAt),
-        streamCallId: id,
-      });
-
-      setCallDetail(call);
-
-      if (meetingState === 'isInstantMeeting') {
-        router.push(`/meeting/${call.id}`);
+      if (instant) {
+        router.push(`/meeting/${json.id}`);
+        return;
       }
       
       if (onMeetingCreated) onMeetingCreated();
@@ -110,14 +98,6 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
       console.error('Failed to create meeting:', error);
       toast({ title: 'Failed to create Meeting' });
     }
-  };
-
-  const ensureClientReady = () => {
-    if (!client || !user) {
-      toast({ title: 'Please wait', description: 'Initializing meeting services...' });
-      return false;
-    }
-    return true;
   };
 
   const meetingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${callDetail?.id}`;
@@ -164,10 +144,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
           title="Create Meeting"
-          handleClick={() => {
-            if (!ensureClientReady()) return;
-            createMeetingHandler();
-          }}
+          handleClick={() => createMeetingHandler(false)}
         >
           <div className="flex flex-col gap-2.5">
             <label className="text-base font-normal leading-[22.4px] text-sky-2">
@@ -236,10 +213,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
           title="Start an Instant Meeting"
         className="text-center"
         buttonText="Start Meeting"
-          handleClick={() => {
-            if (!ensureClientReady()) return;
-            createMeetingHandler();
-          }}
+          handleClick={() => createMeetingHandler(true)}
       />
     </section>
   );
