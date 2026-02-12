@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import HomeCard from './HomeCard';
 import MeetingModal from './MeetingModal';
-import { Call } from '@stream-io/video-react-sdk';
+import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Textarea } from './ui/textarea';
 import dynamic from 'next/dynamic';
@@ -44,6 +44,7 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
   const active = !!user?.user_metadata?.subscription_active;
   const [config, setConfig] = useState<{ recordingsEnabled: boolean; streamingEnabled: boolean; unlimitedOneOnOne: boolean } | null>(null);
   const [creating, setCreating] = useState(false);
+  const client = useStreamVideoClient();
   
   useEffect(() => {
     (async () => {
@@ -82,8 +83,47 @@ const MeetingTypeList = ({ onMeetingCreated }: { onMeetingCreated?: () => void }
       });
       const json = await res.json();
       if (!res.ok) {
-        const msg = json?.error || 'Failed to create meeting';
-        toast({ title: 'Create failed', description: msg, variant: 'destructive' });
+        // Fallback: create via client SDK and write DB
+        if (!client) {
+          const msg = json?.error || 'Failed to create meeting';
+          toast({ title: 'Create failed', description: msg, variant: 'destructive' });
+          return;
+        }
+        const id = crypto.randomUUID();
+        const call = client.call('default', id);
+        const startsISO = (instant ? new Date() : values.dateTime).toISOString();
+        await call.getOrCreate({
+          data: {
+            starts_at: startsISO,
+            custom: {
+              description: values.description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
+              starts_at: startsISO,
+            },
+          },
+        });
+        const dbRes = await fetch('/api/meetings/create-db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id,
+            title: values.description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
+            startsAt: startsISO,
+            streamCallId: id,
+          }),
+        });
+        if (!dbRes.ok) {
+          const dbJson = await dbRes.json().catch(() => ({}));
+          const msg = dbJson?.error || 'Failed to write meeting to DB';
+          toast({ title: 'Create failed', description: msg, variant: 'destructive' });
+          return;
+        }
+        setCallDetail({ id } as unknown as Call);
+        if (instant) {
+          router.push(`/meeting/${id}`);
+          return;
+        }
+        if (onMeetingCreated) onMeetingCreated();
+        toast({ title: 'Meeting Created' });
         return;
       }
       setCallDetail({ id: json.id } as unknown as Call);
