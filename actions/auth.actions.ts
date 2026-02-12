@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
-import db from '@/lib/db'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -53,6 +52,7 @@ export async function signup(formData: FormData) {
   if (authData.user) {
     try {
       // Check if user already exists to avoid unique constraint errors
+      const { default: db } = await import('@/lib/db')
       const existingUser = await db.user.findUnique({
         where: { id: authData.user.id }
       })
