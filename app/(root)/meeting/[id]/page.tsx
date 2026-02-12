@@ -12,6 +12,7 @@ import MeetingSetup from '@/components/MeetingSetup';
 import MeetingRoom from '@/components/MeetingRoom';
 import { getGlobalPlanConfig } from '@/actions/billing.actions';
 import StreamVideoProvider from '@/providers/StreamClientProvider';
+import SimpleMeetingRoom from '@/components/SimpleMeetingRoom';
 
 const MeetingPage = () => {
   const params = useParams<{ id: string }>();
@@ -46,7 +47,7 @@ const MeetingPage = () => {
 
   if (!isLoaded || isCallLoading || !configLoaded) return <Loader />;
 
-  if (!streamClient) return <Alert title="Stream is not configured" />;
+  if (!streamClient) return <SimpleMeetingRoom roomId={id} />;
   if (!call) return <Alert title="Call Not Found" />;
 
   // get more info about custom call type:  https://getstream.io/video/docs/react/guides/configuring-call-types/
