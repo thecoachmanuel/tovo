@@ -7,6 +7,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/Navbar";
+import { inter } from "./fonts";
 
 export const metadata: Metadata = {
   title: "TOVO",
@@ -21,7 +22,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans bg-white dark:bg-dark-2">
+      <body className={`${inter.className} bg-white dark:bg-dark-2`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

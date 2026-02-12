@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { sora } from '@/app/fonts';
 
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { sidebarLinks } from '@/constants';
@@ -32,7 +33,7 @@ const MobileNav = () => {
               height={32}
               alt="tovo logo"
             />
-            <div className="text-[26px] font-extrabold">
+            <div className={`text-[26px] font-extrabold ${sora.className}`}>
               <span className="text-white">
                 TOVO
               </span>

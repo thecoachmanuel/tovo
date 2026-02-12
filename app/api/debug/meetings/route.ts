@@ -11,7 +11,13 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
-    return NextResponse.json(meetings);
+    return new NextResponse(JSON.stringify(meetings), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch meetings' }, { status: 500 });
   }

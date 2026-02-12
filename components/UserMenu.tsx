@@ -29,7 +29,7 @@ export default function UserMenu() {
             src={(user && (user.user_metadata.avatar_url as string)) || '/icons/user.svg'}
             alt="User avatar"
             fill
-            unoptimized
+            sizes="32px"
             className="rounded-full object-cover"
           />
         </Button>

@@ -6,6 +6,7 @@ import MobileNav from './MobileNav';
 import UserMenu from './UserMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from './ui/button';
+import { sora } from '@/app/fonts';
  
 
 const Navbar = () => {
@@ -19,7 +20,7 @@ const Navbar = () => {
           alt="tovo logo"
           className="max-sm:size-10"
         />
-        <div className="text-[26px] font-extrabold max-sm:hidden">
+        <div className={`text-[26px] font-extrabold max-sm:hidden ${sora.className}`}>
           <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent dark:hidden">
             TOVO
           </span>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { signup } from '@/actions/auth.actions'
 import { useState } from 'react'
+import { sora } from '@/app/fonts'
  
 
 export default function SignUpPage() {
@@ -30,7 +31,7 @@ export default function SignUpPage() {
               height={32}
               alt="tovo logo"
             />
-            <div className="text-[26px] font-extrabold">
+            <div className={`text-[26px] font-extrabold ${sora.className}`}>
               <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent dark:hidden">
                 TOVO
               </span>
