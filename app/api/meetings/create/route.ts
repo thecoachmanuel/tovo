@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const call = streamClient.video.call('default', id);
     await call.getOrCreate({
       data: {
-        starts_at: startsISO,
+        starts_at: new Date(startsISO),
         custom: {
           description: description || (instant ? 'Instant Meeting' : 'Scheduled Meeting'),
           starts_at: startsISO,
