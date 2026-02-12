@@ -19,14 +19,6 @@ const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
     const supabase = createClient();
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-      if (user && adminEmail && user.email === adminEmail && user.user_metadata?.role !== 'admin') {
-        try {
-          await supabase.auth.updateUser({
-            data: { role: 'admin' },
-          });
-        } catch {}
-      }
       setUser(user);
       setIsLoaded(true);
     };

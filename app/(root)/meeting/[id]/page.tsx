@@ -11,6 +11,7 @@ import Alert from '@/components/Alert';
 import MeetingSetup from '@/components/MeetingSetup';
 import MeetingRoom from '@/components/MeetingRoom';
 import { getGlobalPlanConfig } from '@/actions/billing.actions';
+import StreamVideoProvider from '@/providers/StreamClientProvider';
 
 const MeetingPage = () => {
   const params = useParams<{ id: string }>();
@@ -57,18 +58,20 @@ const MeetingPage = () => {
   if (limitError) return <Alert title={limitError} />;
 
   return (
-    <main className="h-screen w-full">
-      <StreamCall call={call}>
-        <StreamTheme>
+    <StreamVideoProvider>
+      <main className="h-screen w-full">
+        <StreamCall call={call}>
+          <StreamTheme>
 
-        {!isSetupComplete ? (
-          <MeetingSetup setIsSetupComplete={setIsSetupComplete} />
-        ) : (
-          <MeetingRoom />
-        )}
-        </StreamTheme>
-      </StreamCall>
-    </main>
+          {!isSetupComplete ? (
+            <MeetingSetup setIsSetupComplete={setIsSetupComplete} />
+          ) : (
+            <MeetingRoom />
+          )}
+          </StreamTheme>
+        </StreamCall>
+      </main>
+    </StreamVideoProvider>
   );
 };
 

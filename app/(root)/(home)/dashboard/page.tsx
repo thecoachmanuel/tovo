@@ -1,6 +1,6 @@
 'use client';
 
-import MeetingTypeList from '@/components/MeetingTypeList';
+import dynamic from 'next/dynamic';
 import { useGetCalls } from '@/hooks/useGetCalls';
 import { Call } from '@stream-io/video-react-sdk';
 import Loader from '@/components/Loader';
@@ -11,6 +11,17 @@ import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 
+const MeetingTypeListLazy = dynamic(() => import('@/components/MeetingTypeList'), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-gray-200 dark:border-dark-3 bg-white dark:bg-dark-1 p-6">
+      <div className="h-6 w-40 bg-gray-200 dark:bg-dark-3 rounded mb-4 animate-pulse" />
+      <div className="h-10 w-full bg-gray-200 dark:bg-dark-3 rounded mb-3 animate-pulse" />
+      <div className="h-10 w-full bg-gray-200 dark:bg-dark-3 rounded mb-3 animate-pulse" />
+      <div className="h-10 w-full bg-gray-200 dark:bg-dark-3 rounded animate-pulse" />
+    </div>
+  ),
+});
 const DashboardContent = () => {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
@@ -112,7 +123,7 @@ const DashboardContent = () => {
         </div>
       </div>
 
-      <MeetingTypeList onMeetingCreated={refetch} />
+      <MeetingTypeListLazy onMeetingCreated={refetch} />
     </section>
     </Suspense>
   );

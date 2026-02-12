@@ -25,6 +25,16 @@ export const createMeeting = async ({
 
   try {
     const { default: db } = await import('@/lib/db');
+    // Ensure user record exists for foreign key constraint
+    await db.user.upsert({
+      where: { id: user.id },
+      update: {},
+      create: {
+        id: user.id,
+        email: user.email || '',
+        username: (user.user_metadata as any)?.username || null,
+      },
+    });
     const meeting = await db.meeting.create({
       data: {
         id,
